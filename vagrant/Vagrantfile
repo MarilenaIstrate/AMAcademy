@@ -1,0 +1,69 @@
+VIRTUAL_MACHINES = {
+  :docker1 => {
+    :hostname => 'am.academy.docker1',
+	:ip => "192.168.90.23"
+  },
+  :docker2 => {
+    :hostname => 'am.academy.docker2',
+	:ip => "192.168.90.24"
+  },
+  :docker3 => {
+    :hostname => 'am.academy.docker3',
+	:ip => "192.168.90.25"
+  }
+}
+
+Vagrant.configure("2") do |config|
+  
+	config.vm.define "controller" do |contr|
+    contr.vm.box = "ubuntu/trusty64"
+    contr.vm.hostname = 'controller'
+
+    contr.vm.network :private_network, ip: "192.168.90.21"
+  
+    contr.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+	  v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	  v.name = "am.academy.controller"
+	  v.memory = "256"
+	  v.cpus = "1"
+	 
+    end
+  end
+  
+  config.vm.define "jenkins" do |jen|
+    jen.vm.box = "ubuntu/trusty64"
+    jen.vm.hostname = 'jenkins'
+
+    jen.vm.network :private_network, ip: "192.168.90.22"
+
+    jen.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+	  v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	  v.name = "am.academy.jenkins"
+	  v.memory = "1024"
+	  v.cpus = "2"
+	  
+    end
+  end
+
+	
+	config.vm.box = "ubuntu/trusty64"
+	config.vbguest.auto_update = false
+	
+	VIRTUAL_MACHINES.each do |name,cfg|
+
+		config.vm.define name do |vm_config|
+			vm_config.vm.network "private_network", ip: cfg[:ip]
+			vm_config.vm.hostname = cfg[:hostname]
+			
+			vm_config.vm.provider "virtualbox" do |v|
+				v.name = cfg[:hostname]
+				v.memory = "512"
+				v.cpus = "1"
+			end
+		end
+			
+	end
+  
+end
